@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeatingArrangement</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <style>
+        :root { --primary: #2563eb; --success: #059669; --purple: #7c3aed; --bg: #f1f5f9; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; }
+        
+        .no-print-area { max-width: 700px; margin: 0 auto 30px; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .controls { display: flex; flex-direction: column; gap: 12px; }
+        .input-row { display: flex; gap: 20px; flex-wrap: wrap; text-align: center; }
+        .input-field { flex: 1; min-width: 140px; }
+        label { font-size: 12px; font-weight: bold; display: block; margin-bottom: 4px; }
+        input, select, button { padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 14px; width: 100%; box-sizing: border-box; }
+        .input-exam { flex: 1; min-width: 80px; width: 20%;}
+
+        .btn-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 5px; }
+        .upload-group { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 5px; }
+        .btn-card { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
+        .btn-master { background: #334155; color: white; border: none; font-weight: bold; cursor: pointer; }
+        .btn-sticker { background: var(--purple); color: white; border: none; font-weight: bold; cursor: pointer; }
+        .btn-clear { background: #ec3636; color: white; border: none; font-weight: bold; cursor: pointer;width: 30%; }
+        
+        #pdfBtn { background: var(--success); color: white; border: none; font-weight: bold; cursor: pointer; display: none; margin-top: 15px; }
+
+        /* Hall Card Styles */
+        .class-card { width: 190mm; height: 52mm; border: 2.5px solid #000; margin: 0 auto 2mm; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; background: #fff; }
+        .class-header { background: #f8fafc; padding: 5px 15px; border-bottom: 2.5px solid #000; display: flex; justify-content: space-between; align-items: center; }
+        .header-main { display: flex; align-items: center; gap: 15px; }
+        .session-info { font-size: 12px; font-family: monospace; display: flex; flex-direction: column; align-items: center; line-height: 1.1; border-left: 1px solid #ccc; padding-left: 10px; }
+        .card-body { padding: 8px 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
+        .range-numbers { font-family: 'Calibri', monospace; font-size: 21px; font-weight: 900; }
+        .paper-label { font-size: 12px; font-weight: 900; text-transform: capitalize; border-bottom: 1.5px solid #000; width: fit-content; margin-bottom: 2px;font-family:'Calibri' }
+
+        /* Master Table Styles */
+        .master-table { width: 100%; border-collapse: collapse; table-layout: fixed; background: #fff; }
+        .master-table th, .master-table td { border: 1px solid #000; padding: 6px; text-align: center; font-weight: 700; font-size: 13px; }
+        .col-regs-master { text-align: left !important; font-family: 'Calibri', monospace; font-size: 16px; width: 32%; }
+        
+        .dotted-line { border-bottom: 1.5px dotted #000; height: 18px; width: 80%; margin: 0 auto; }
+
+        /* Sticker Styles */
+        .sticker-grid { display: grid; grid-template-columns: repeat(5, 1fr); grid-auto-rows: 22.84mm; width: 210mm; margin: 0 auto; background: #fff; }
+        .sticker { display: flex; align-items: center; justify-content: center; font-family: 'Calibri', sans-serif; font-size: 20px; font-weight: 900; text-align: center; border: 0.1mm none #eee; overflow: hidden; }
+
+        .cut-line { width: 190mm; margin: 2mm auto; border-top: 1px dashed #000; position: relative; }
+        .page-break { page-break-after: always; }
+
+        @media print {
+    .no-print-area {
+        display: none !important;
+    }
+    #dynamicOutput h2 {
+    font-family: 'Arial Black', sans-serif;
+    letter-spacing: 1px;
+    border-bottom: 2px solid #000;
+    display: inline-block;
+    padding: 0 20px;
+}
+}
+
+/* Make selects and inputs look more uniform */
+select, input {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+
+/* Make selects and inputs look more uniform */
+select, input {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+    </style>
+</head>
+<body>
+
+
+     
+    <div class="no-print-area" style="font-family: sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+    <h2 style="margin: 0 0 20px 0; text-align: center;">Examination Seating Arrangement</h2>
+    <div class="controls">
+
+
+    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <label>Name of Exam:</label>
+        <select class="input-exam" id="examName">
+            <option value="First Semester">First Sem</option>
+            <option value="Second Semester">Second Sem</option>
+            <option value="Third Semester">Third Sem</option>
+            <option value="Fourth Semester">Fourth Sem</option>
+            <option value="Fifth Semester">Fifth Sem</option>
+            <option value="Sixth Semester">Sixth Sem</option>
+            <option value="Seventh Semester">Seventh Sem</option>
+            <option value="Eighth Semester">Eighth Sem</option>
+
+        </select>
+
+        <label>Scheme:</label>
+        <select id="examScheme" class="input-exam"> 
+           <option value="FYUG">FYUG</option> 
+           <option value="CBCSS">CBCSS</option> 
+        </select>
+
+        <span>Examination</span>
+
+        <select id="examSession" class="input-exam">
+            <option>November</option>
+            <option>April</option>
+        </select>
+
+        <input type="number" id="examYear" value="2026" class="input-exam">
+    </div>
+</div>
+<br>
+
+    
+    
+   
+
+        <div class="input-row">
+            <div class="input-field"><label>Date</label><input type="date" id="examDate"></div>
+            <div class="input-field"><label>Session</label>
+                <select id="session">
+                    <option value="FN">Forenoon (FN)</option>
+                    <option value="AN">Afternoon (AN)</option>
+                </select>
+            </div>
+            <div class="input-field"><label>Time</label><input type="text" id="examTime" placeholder="e.g. 10:00 - 1:00"></div>
+            <div class="input-field"><label>Students/Hall</label><input type="number" id="pageSize" value="20"></div>
+        </div>
+        <br>
+        <div class="upload-group">
+        <input type="file" id="fileInput" accept=".xlsx, .xls" multiple>
+        <button class="btn-clear" onclick="clearAll()">Clear files</button>
+        </div>
+        <br>
+        <div class="btn-group">
+            <button class="btn-card" onclick="process('cards')">Seating Arrangement</button>
+            <button class="btn-master" onclick="process('master')">Exam Table</button>
+            <button class="btn-sticker" onclick="process('stickers')">Stickers</button>
+        </div>
+        <br>
+        <button id="pdfBtn" onclick="downloadPDF()">Download PDF</button>
+    </div>
+</div>
+
+<div id="printableArea">
+    <div id="dynamicOutput"></div>
+</div>
+
+<script>
+    let currentMode = '';
+
+    function parseId(id) {
+        const str = String(id).trim();
+        const match = str.match(/^([a-zA-Z]*)(\d+)$/);
+        return match ? { prefix: match[1], num: match[2], val: parseInt(match[2]) } : { prefix: '', num: str, val: NaN };
+    }
+    function clearAll() {
+        document.getElementById('fileInput').value = "";
+        document.getElementById('dynamicOutput').innerHTML = "";
+        document.getElementById('pdfBtn').style.display = "none";
+        currentMode = '';
+    }
+
+    async function loadData() {
+        const fileInput = document.getElementById('fileInput');
+        if (!fileInput.files.length) { alert("Please select Excel files."); return null; }
+        let list = [];
+        for (const file of Array.from(fileInput.files)) {
+            const paperName = file.name.replace(/\.[^/.]+$/, "");
+            const data = await file.arrayBuffer();
+            const wb = XLSX.read(data);
+            const sheet = wb.Sheets[wb.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(sheet, {header: 1});
+            let regIdx = rows[0].findIndex(h => String(h).toLowerCase().includes('reg'));
+            if (regIdx === -1) regIdx = 0;
+            for(let r=1; r<rows.length; r++) { if(rows[r][regIdx]) list.push({ id: rows[r][regIdx], paper: paperName }); }
+        }
+        return list;
+    }
+
+    async function process(mode) {
+        currentMode = mode;
+        const list = await loadData();
+        if (!list) return;
+        
+        const output = document.getElementById('dynamicOutput');
+        output.innerHTML = '';
+        const pageSize = parseInt(document.getElementById('pageSize').value);
+        const dateInput = document.getElementById('examDate').value;
+        const formattedDate = dateInput ? new Date(dateInput).toLocaleDateString('en-GB') : "";
+        const session = document.getElementById('session').value;
+        const time = document.getElementById('examTime').value;
+
+        if (mode === 'cards') {
+            for (let i = 0, hCount = 1; i < list.length; i += pageSize, hCount++) {
+                renderHallCard(list.slice(i, i + pageSize), hCount, formattedDate, session, time);
+            }
+        } else if (mode === 'master') {
+            renderMasterTable(list, pageSize, formattedDate, session, time);
+        } else if (mode === 'stickers') {
+            renderStickers(list);
+        }
+        document.getElementById('pdfBtn').style.display = 'block';
+    }
+
+    function renderHallCard(chunk, num, date, session, time) {
+        const output = document.getElementById('dynamicOutput');
+        let usedPrefixes = new Set();
+        let bodyHtml = "";
+        let groups = [];
+
+        chunk.forEach(item => {
+            let lastG = groups[groups.length-1];
+            let obj = parseId(item.id);
+            if (lastG && lastG.paper === item.paper && obj.prefix === lastG.lastObj.prefix && obj.val === lastG.lastObj.val + 1) {
+                lastG.ranges[lastG.ranges.length-1].end = obj;
+                lastG.lastObj = obj;
+            } else {
+                if (!lastG || lastG.paper !== item.paper) groups.push({ paper: item.paper, ranges: [{start: obj, end: obj}], lastObj: obj });
+                else { lastG.ranges.push({start: obj, end: obj}); lastG.lastObj = obj; }
+            }
+        });
+
+        groups.forEach(g => {
+            let rText = g.ranges.map(r => {
+                let showP = !usedPrefixes.has(r.start.prefix);
+                if (r.start.prefix) usedPrefixes.add(r.start.prefix);
+                let startStr = showP ? (r.start.prefix + r.start.num) : r.start.num;
+                if (r.start.num === r.end.num) return startStr;
+                return startStr + "-" + (r.end.num.length > 3 ? r.end.num.slice(-3) : r.end.num);
+            }).join(', ');
+            bodyHtml += `<div><div class="paper-label">${g.paper}</div><div class="range-numbers">${rText}</div></div>`;
+        });
+
+        const card = `
+            <div class="class-card">
+                <div class="class-header">
+                    <div class="header-main">
+                        <b>Hall No. ${num}</b><b>Room No. :&ensp;&ensp;&ensp;</b>
+                        <span></span>
+                   
+                    <b>&ensp;&ensp;&ensp;${date}</b>
+                    <div class="session-info"><span>${session}</span><span style="font-size:10px">${time}</span></div>
+                    </div>
+                    <b>Str: ${chunk.length}</b>
+                </div>
+                <div class="card-body">${bodyHtml}</div>
+            </div>`;
+        output.innerHTML += card + ((num % 5 === 0) ? '<div class="page-break"></div>' : '<div class="cut-line"></div>');
+    }
+
+    function renderMasterTable(list, size, date, session, time) {
+        const output = document.getElementById('dynamicOutput');
+
+        // Capture values from the selection headers
+        const examName = document.getElementById('examName').value;
+        const examScheme = document.getElementById('examScheme').value;
+        const examSession = document.getElementById('examSession').value;
+        const examYear = document.getElementById('examYear').value;
+
+        // Create the Header Title String
+        const fullTitle = `${examName} (${examScheme}) Examination, ${examSession} ${examYear}`;
+
+        let html = `
+            <div style="text-align:center; margin-bottom:15px;">
+                <h3 style="margin:0; text-transform:uppercase;">${fullTitle}</h3>
+                <h4 style="margin:5px 0;">Seating Arrangement and Duty of Invigilator</h4>
+            </div>
+            <table class="master-table">
+                <thead>
+                    <tr>
+                        <th>Hall No</th>
+                        <th>Date & Session</th>
+                        <th>Paper</th>
+                        <th class="col-regs-master">Register Numbers</th>
+                        <th>Str</th>
+                        <th>Invigilator</th>
+                        <th>Sign</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+        
+        for (let i = 0, hCount = 1; i < list.length; i += size, hCount++) {
+            const chunk = list.slice(i, i + size);
+            let subGroups = [];
+            chunk.forEach(item => {
+                if (subGroups.length === 0 || subGroups[subGroups.length-1].paper !== item.paper) {
+                    subGroups.push({ paper: item.paper, ids: [item.id] });
+                } else {
+                    subGroups[subGroups.length-1].ids.push(item.id);
+                }
+            });
+
+            subGroups.forEach((group, gIdx) => {
+                html += `<tr>`;
+                if (gIdx === 0) {
+                    html += `<td rowspan="${subGroups.length}">${hCount}</td>`;
+                    html += `<td rowspan="${subGroups.length}" style="font-size:11px">${date}<br><b>${session}&ensp;<span style="font-size:11px">${time}</span></td>`;
+                }
+                html += `<td style="text-align:left; font-size:11px">${group.paper}</td>`;
+                html += `<td class="col-regs-master">${formatRangesForMaster(group.ids)}</td>`;
+                if (gIdx === 0) {
+                    html += `<td rowspan="${subGroups.length}">${chunk.length}</td>`;
+                    html += `<td rowspan="${subGroups.length}"><div class="dotted-line"></div></td>`;
+                    html += `<td rowspan="${subGroups.length}"><div class="dotted-line"></div></td>`;
+                }
+                html += `</tr>`;
+            });
+        }
+        output.innerHTML = html + `</tbody></table>`;
+    }
+
+    function formatRangesForMaster(ids) {
+        let ranges = [];
+        let i = 0;
+        let prefixes = new Set();
+        while (i < ids.length) {
+            let start = parseId(ids[i]), last = start;
+            while (i + 1 < ids.length) {
+                let next = parseId(ids[i+1]);
+                if (next.prefix === last.prefix && next.val === last.val + 1) { last = next; i++; } else break;
+            }
+            ranges.push({start, last}); i++;
+        }
+        return ranges.map(r => {
+            let p = !prefixes.has(r.start.prefix); if(r.start.prefix) prefixes.add(r.start.prefix);
+            let s = p ? (r.start.prefix + r.start.num) : r.start.num;
+            return (r.start.num === r.last.num) ? s : s + "-" + (r.last.num.slice(-3));
+        }).join(', ');
+    }
+
+    function renderStickers(list) {
+        const output = document.getElementById('dynamicOutput');
+        const grid = document.createElement('div');
+        grid.className = 'sticker-grid';
+        list.forEach(item => {
+            const s = document.createElement('div');
+            s.className = 'sticker';
+            s.innerText = String(item.id).trim();
+            grid.appendChild(s);
+        });
+        output.appendChild(grid);
+    }
+
+    function downloadPDF() {
+        const element = document.getElementById('dynamicOutput');
+        let opt = {
+            margin: [5, 5, 5, 5],
+            filename: `Exam_${currentMode}.pdf`,
+            jsPDF: { unit: 'mm', format: 'a4', orientation: (currentMode === 'master' ? 'landscape' : 'portrait') }
+        };
+        if(currentMode === 'stickers') opt.margin = 0;
+        html2pdf().set(opt).from(element).save();
+    }
+</script>
+</body>
+</html>
