@@ -10,6 +10,8 @@
     <style>
         :root { --primary: #2563eb; --success: #059669; --purple: #7c3aed; --bg: #f1f5f9; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; }
+
+        .master-container { width: 100%; }
         
         .no-print-area { max-width: 700px; margin: 0 auto 30px; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .controls { display: flex; flex-direction: column; gap: 12px; }
@@ -25,22 +27,66 @@
         .btn-master { background: #334155; color: white; border: none; font-weight: bold; cursor: pointer; }
         .btn-sticker { background: var(--purple); color: white; border: none; font-weight: bold; cursor: pointer; }
         .btn-clear { background: #ec3636; color: white; border: none; font-weight: bold; cursor: pointer;width: 30%; }
+
         
         #pdfBtn { background: var(--success); color: white; border: none; font-weight: bold; cursor: pointer; display: none; margin-top: 15px; }
 
         /* Hall Card Styles */
-        .class-card { width: 190mm; height: 52mm; border: 2.5px solid #000; margin: 0 auto 2mm; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; background: #fff; }
+        .class-card { 
+    width: 190mm; 
+    min-height: 45mm; /* Changed from height to min-height */
+    height: auto;      /* Allows expansion */
+    
+    margin: 0 auto 5mm; /* Increased margin for better separation */
+    box-sizing: border-box; 
+    display: flex; 
+    flex-direction: column; 
+    background: #fff; 
+    page-break-inside: avoid;
+    border: 0.75pt solid #000;
+     /* Prevents a single card from splitting across pages */
+}
         .class-header { background: #f8fafc; padding: 5px 15px; border-bottom: 2.5px solid #000; display: flex; justify-content: space-between; align-items: center; }
         .header-main { display: flex; align-items: center; gap: 15px; }
         .session-info { font-size: 12px; font-family: monospace; display: flex; flex-direction: column; align-items: center; line-height: 1.1; border-left: 1px solid #ccc; padding-left: 10px; }
         .card-body { padding: 8px 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
-        .range-numbers { font-family: 'Calibri', monospace; font-size: 21px; font-weight: 900; }
-        .paper-label { font-size: 12px; font-weight: 900; text-transform: capitalize; border-bottom: 1.5px solid #000; width: fit-content; margin-bottom: 2px;font-family:'Calibri' }
+        .range-numbers { font-family: 'Calibri', monospace; font-size: 20px; font-weight: 900; }
+        .paper-label { font-size: 11px; font-weight: 900; text-transform: capitalize; border-bottom: 1.5px solid #000; width: fit-content; margin-bottom: 2px;font-family:'Calibri' }
 
         /* Master Table Styles */
-        .master-table { width: 100%; border-collapse: collapse; table-layout: fixed; background: #fff; }
-        .master-table th, .master-table td { border: 1px solid #000; padding: 6px; text-align: center; font-weight: 700; font-size: 13px; }
-        .col-regs-master { text-align: left !important; font-family: 'Calibri', monospace; font-size: 16px; width: 32%; }
+       /* Optimized Master Table for Landscape Print */
+.master-table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    table-layout: fixed; /* Crucial for respecting set widths */
+    background: #fff; 
+}
+
+.master-table th{ 
+    border: 1px solid #000; 
+    padding: 6px 4px; 
+    text-align: center; 
+    font-weight: 700; 
+    font-size: 13px;
+    word-wrap: break-word; /* Prevents long text from breaking layout */
+}
+.master-table td { 
+    border: 1px solid #000; 
+    padding: 6px 4px; 
+    text-align: left; 
+    font-weight: 700; 
+    font-size: 13px;
+    word-wrap: break-word; /* Prevents long text from breaking layout */
+}
+
+/* Specific Column Widths */
+.col-hall { width: 4%; text-align: right; }        /* Reduced Hall column */
+.col-date { width: 8%; text-align: center;}       /* Reduced Date/Session column */
+.col-paper { width: 30%; }      /* EXPANDED Paper column */
+.col-regs-master { width: 30%; } /* Register Numbers */
+.col-str { width: 5%; }         /* Reduced Strength column */
+.col-inv { width: 13%; }        /* Invigilator name */
+.col-sign { width: 10%; }       /* Signature */
         
         .dotted-line { border-bottom: 1.5px dotted #000; height: 18px; width: 80%; margin: 0 auto; }
 
@@ -48,20 +94,49 @@
         .sticker-grid { display: grid; grid-template-columns: repeat(5, 1fr); grid-auto-rows: 22.84mm; width: 210mm; margin: 0 auto; background: #fff; }
         .sticker { display: flex; align-items: center; justify-content: center; font-family: 'Calibri', sans-serif; font-size: 20px; font-weight: 900; text-align: center; border: 0.1mm none #eee; overflow: hidden; }
 
-        .cut-line { width: 190mm; margin: 2mm auto; border-top: 1px dashed #000; position: relative; }
+        /* .cut-line { width: 190mm; margin: 2mm auto; border-top: 1px dashed #000; position: relative; } */
         .page-break { page-break-after: always; }
+        @page {
+        size: A4;
+        margin: 10mm; /* Professional standard margin */
+        }
 
-        @media print {
-    .no-print-area {
-        display: none !important;
+       @media print {
+    /* Hide UI elements */
+    .no-print-area { display: none !important; }
+    .landscape-print {
+        @page { size: A4 landscape; margin: 10mm; }
+        width: 100%;
     }
-    #dynamicOutput h2 {
-    font-family: 'Arial Black', sans-serif;
-    letter-spacing: 1px;
-    border-bottom: 2px solid #000;
-    display: inline-block;
-    padding: 0 20px;
-}
+
+    /* Ensure the table fills the landscape width */
+    .master-table {
+        width: 100% !important;
+        page-break-inside: auto;
+    }
+    
+    /* Reset body for physical paper */
+    body { 
+        background: white !important; 
+        padding: 0 !important; 
+        margin: 0 !important; 
+    }
+
+    /* Force background colors and sharp borders */
+    * { 
+        -webkit-print-color-adjust: exact !important; 
+        print-color-adjust: exact !important; 
+        
+    }
+
+    /* Optimization for Master Table if it's long */
+    .master-table {
+        page-break-inside: auto;
+    }
+    .master-table tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+    }
 }
 
 /* Make selects and inputs look more uniform */
@@ -172,123 +247,172 @@ select, input {
     }
 
     async function loadData() {
-        const fileInput = document.getElementById('fileInput');
-        if (!fileInput.files.length) { alert("Please select Excel files."); return null; }
-        let list = [];
-        for (const file of Array.from(fileInput.files)) {
-            const paperName = file.name.replace(/\.[^/.]+$/, "");
-            const data = await file.arrayBuffer();
-            const wb = XLSX.read(data);
-            const sheet = wb.Sheets[wb.SheetNames[0]];
-            const rows = XLSX.utils.sheet_to_json(sheet, {header: 1});
-            let regIdx = rows[0].findIndex(h => String(h).toLowerCase().includes('reg'));
-            if (regIdx === -1) regIdx = 0;
-            for(let r=1; r<rows.length; r++) { if(rows[r][regIdx]) list.push({ id: rows[r][regIdx], paper: paperName }); }
+    const fileInput = document.getElementById('fileInput');
+    if (!fileInput.files.length) { alert("Please select Excel files."); return null; }
+    
+    let list = [];
+    for (const file of Array.from(fileInput.files)) {
+        const data = await file.arrayBuffer();
+        const wb = XLSX.read(data);
+        const sheet = wb.Sheets[wb.SheetNames[0]];
+
+        // 1. Extract Paper Name from B5
+        const cellB5 = sheet['B5'];
+        const paperName = cellB5 ? String(cellB5.v).trim() : "Unknown Paper";
+
+        // 2. Convert sheet to array starting from row 1
+        const rows = XLSX.utils.sheet_to_json(sheet, {header: 1});
+        
+        // 3. Process data starting from Row 9 (Index 8)
+        // Adjust the column index if 'B' is not the first column (B is Index 1)
+        const colBIndex = 1; 
+
+        for(let r = 8; r < rows.length; r++) { 
+            const regNumber = rows[r][colBIndex];
+            if(regNumber) {
+                list.push({ id: regNumber, paper: paperName }); 
+            }
         }
-        return list;
     }
+    return list;
+}
 
     async function process(mode) {
-        currentMode = mode;
-        const list = await loadData();
-        if (!list) return;
-        
-        const output = document.getElementById('dynamicOutput');
-        output.innerHTML = '';
-        const pageSize = parseInt(document.getElementById('pageSize').value);
-        const dateInput = document.getElementById('examDate').value;
-        const formattedDate = dateInput ? new Date(dateInput).toLocaleDateString('en-GB') : "";
-        const session = document.getElementById('session').value;
-        const time = document.getElementById('examTime').value;
-
-        if (mode === 'cards') {
-            for (let i = 0, hCount = 1; i < list.length; i += pageSize, hCount++) {
-                renderHallCard(list.slice(i, i + pageSize), hCount, formattedDate, session, time);
-            }
-        } else if (mode === 'master') {
-            renderMasterTable(list, pageSize, formattedDate, session, time);
-        } else if (mode === 'stickers') {
-            renderStickers(list);
-        }
-        document.getElementById('pdfBtn').style.display = 'block';
+    currentMode = mode;
+    const list = await loadData();
+    if (!list) return;
+    
+    const output = document.getElementById('dynamicOutput');
+    const body = document.body;
+    output.innerHTML = '';
+    
+    // Toggle Landscape class based on mode
+    if (mode === 'master') {
+        body.classList.add('landscape-print');
+    } else {
+        body.classList.remove('landscape-print');
     }
+
+    const pageSize = parseInt(document.getElementById('pageSize').value);
+    const dateInput = document.getElementById('examDate').value;
+    const formattedDate = dateInput ? new Date(dateInput).toLocaleDateString('en-GB') : "";
+    const session = document.getElementById('session').value;
+    const time = document.getElementById('examTime').value;
+
+    if (mode === 'cards') {
+        for (let i = 0, hCount = 1; i < list.length; i += pageSize, hCount++) {
+            renderHallCard(list.slice(i, i + pageSize), hCount, formattedDate, session, time);
+        }
+    } else if (mode === 'master') {
+        renderMasterTable(list, pageSize, formattedDate, session, time);
+    } else if (mode === 'stickers') {
+        renderStickers(list);
+    }
+    document.getElementById('pdfBtn').style.display = 'block';
+}
 
     function renderHallCard(chunk, num, date, session, time) {
-        const output = document.getElementById('dynamicOutput');
-        let usedPrefixes = new Set();
-        let bodyHtml = "";
-        let groups = [];
+    const output = document.getElementById('dynamicOutput');
+    let bodyHtml = "";
+    let groups = [];
 
-        chunk.forEach(item => {
-            let lastG = groups[groups.length-1];
-            let obj = parseId(item.id);
-            if (lastG && lastG.paper === item.paper && obj.prefix === lastG.lastObj.prefix && obj.val === lastG.lastObj.val + 1) {
-                lastG.ranges[lastG.ranges.length-1].end = obj;
-                lastG.lastObj = obj;
+    // 1. Grouping logic: Organize students by Paper
+    chunk.forEach(item => {
+        let lastG = groups[groups.length-1];
+        let obj = parseId(item.id);
+        
+        if (lastG && lastG.paper === item.paper && obj.prefix === lastG.lastObj.prefix && obj.val === lastG.lastObj.val + 1) {
+            lastG.ranges[lastG.ranges.length-1].end = obj;
+            lastG.lastObj = obj;
+        } else {
+            if (!lastG || lastG.paper !== item.paper) {
+                groups.push({ paper: item.paper, ranges: [{start: obj, end: obj}], lastObj: obj });
             } else {
-                if (!lastG || lastG.paper !== item.paper) groups.push({ paper: item.paper, ranges: [{start: obj, end: obj}], lastObj: obj });
-                else { lastG.ranges.push({start: obj, end: obj}); lastG.lastObj = obj; }
+                lastG.ranges.push({start: obj, end: obj});
+                lastG.lastObj = obj;
             }
-        });
+        }
+    });
 
-        groups.forEach(g => {
-            let rText = g.ranges.map(r => {
-                let showP = !usedPrefixes.has(r.start.prefix);
-                if (r.start.prefix) usedPrefixes.add(r.start.prefix);
-                let startStr = showP ? (r.start.prefix + r.start.num) : r.start.num;
-                if (r.start.num === r.end.num) return startStr;
-                return startStr + "-" + (r.end.num.length > 3 ? r.end.num.slice(-3) : r.end.num);
-            }).join(', ');
-            bodyHtml += `<div><div class="paper-label">${g.paper}</div><div class="range-numbers">${rText}</div></div>`;
-        });
-
-        const card = `
-            <div class="class-card">
-                <div class="class-header">
-                    <div class="header-main">
-                        <b>Hall No. ${num}</b><b>Room No. :&ensp;&ensp;&ensp;</b>
-                        <span></span>
-                   
-                    <b>&ensp;&ensp;&ensp;${date}</b>
-                    <div class="session-info"><span>${session}</span><span style="font-size:10px">${time}</span></div>
-                    </div>
-                    <b>Str: ${chunk.length}</b>
-                </div>
-                <div class="card-body">${bodyHtml}</div>
+    // 2. Format text: Full ID only for the first student of the paper
+    groups.forEach(g => {
+        let paperPrefix = ""; // Track prefix used in this specific paper row
+        
+        let rText = g.ranges.map((r, index) => {
+            let startStr = "";
+            
+            // If it's the first student of the paper, OR the prefix changed, show full ID
+            if (index === 0 || r.start.prefix !== paperPrefix) {
+                startStr = r.start.prefix + r.start.num;
+                paperPrefix = r.start.prefix; // Update current prefix
+            } else {
+                // Same prefix in same paper: Show only the number
+                startStr = r.start.num;
+            }
+            
+            // If it's a range, add the end numbers
+            if (r.start.num !== r.end.num) {
+                let endStr = (r.end.num.length > 3 ? r.end.num.slice(-3) : r.end.num);
+                return `${startStr}-${endStr}`;
+            }
+            return startStr;
+        }).join(', ');
+        
+        bodyHtml += `
+            <div style="margin-bottom: 8px;">
+                <div class="paper-label">${g.paper}</div>
+                <div class="range-numbers">${rText}</div>
             </div>`;
-        output.innerHTML += card + ((num % 5 === 0) ? '<div class="page-break"></div>' : '<div class="cut-line"></div>');
-    }
+    });
+
+    // 3. Vector-ready HTML output
+    const card = `
+        <div class="class-card">
+            <div class="class-header">
+                <div class="header-main">
+                    <b>Hall No. ${num}</b>
+                    <b style="margin-left:20px;">Room: ________</b>
+                    <b style="margin-left:20px;">${date}</b>
+                    <div class="session-info">
+                        <span>${session}</span>
+                        <span style="font-size:10px">${time}</span>
+                    </div>
+                </div>
+                <b>Str: ${chunk.length}</b>
+            </div>
+            <div class="card-body">${bodyHtml}</div>
+        </div>`;
+    
+    output.innerHTML += card;
+}
 
     function renderMasterTable(list, size, date, session, time) {
-        const output = document.getElementById('dynamicOutput');
+    const output = document.getElementById('dynamicOutput');
+    const examName = document.getElementById('examName').value;
+    const examScheme = document.getElementById('examScheme').value;
+    const examSession = document.getElementById('examSession').value;
+    const examYear = document.getElementById('examYear').value;
 
-        // Capture values from the selection headers
-        const examName = document.getElementById('examName').value;
-        const examScheme = document.getElementById('examScheme').value;
-        const examSession = document.getElementById('examSession').value;
-        const examYear = document.getElementById('examYear').value;
+    const fullTitle = `${examName} (${examScheme}) Examination, ${examSession} ${examYear}`;
 
-        // Create the Header Title String
-        const fullTitle = `${examName} (${examScheme}) Examination, ${examSession} ${examYear}`;
-
-        let html = `
-            <div style="text-align:center; margin-bottom:15px;">
-                <h3 style="margin:0; text-transform:uppercase;">${fullTitle}</h3>
-                <h4 style="margin:5px 0;">Seating Arrangement and Duty of Invigilator</h4>
-            </div>
-            <table class="master-table">
-                <thead>
-                    <tr>
-                        <th>Hall No</th>
-                        <th>Date & Session</th>
-                        <th>Paper</th>
-                        <th class="col-regs-master">Register Numbers</th>
-                        <th>Str</th>
-                        <th>Invigilator</th>
-                        <th>Sign</th>
-                    </tr>
-                </thead>
-                <tbody>`;
+    let html = `
+        <div style="text-align:center; margin-bottom:15px;">
+            <h3 style="margin:0; text-transform:uppercase;">${fullTitle}</h3>
+            <h4 style="margin:5px 0;">Seating Arrangement and Duty of Invigilator</h4>
+        </div>
+        <table class="master-table">
+            <thead>
+                <tr>
+                    <th class="col-hall">Hall</th>
+                    <th class="col-date">Date & Session</th>
+                    <th class="col-paper">Subject / Paper</th>
+                    <th class="col-regs-master">Register Numbers</th>
+                    <th class="col-str">Str</th>
+                    <th class="col-inv">Invigilator</th>
+                    <th class="col-sign">Sign</th>
+                </tr>
+            </thead>
+            <tbody>`;
         
         for (let i = 0, hCount = 1; i < list.length; i += size, hCount++) {
             const chunk = list.slice(i, i + size);
@@ -353,15 +477,25 @@ select, input {
     }
 
     function downloadPDF() {
-        const element = document.getElementById('dynamicOutput');
-        let opt = {
-            margin: [5, 5, 5, 5],
-            filename: `Exam_${currentMode}.pdf`,
-            jsPDF: { unit: 'mm', format: 'a4', orientation: (currentMode === 'master' ? 'landscape' : 'portrait') }
-        };
-        if(currentMode === 'stickers') opt.margin = 0;
-        html2pdf().set(opt).from(element).save();
-    }
+    // 1. Capture dynamic data from your specific IDs
+    const examDate = document.getElementById('examDate').value || "NoDate";
+    const session = document.getElementById('session').value; // FN or AN
+    const semester = document.getElementById('examName').value; // e.g. First Semester
+    
+    // 2. Clean the filename (replace spaces/special characters)
+    const fileName = `${examDate}_${session}_${semester}`.replace(/\s+/g, '_');
+
+    // 3. Update document title for the print engine
+    const originalTitle = document.title;
+    document.title = fileName;
+
+    // 4. Execute Print (User selects "Save as PDF" in the dialog)
+    window.print();
+
+    // 5. Cleanup
+    setTimeout(() => { document.title = originalTitle; }, 100);
+}
+
 </script>
 </body>
 </html>
