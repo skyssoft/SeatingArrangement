@@ -260,21 +260,19 @@ select, input {
         const wb = XLSX.read(data);
         const sheet = wb.Sheets[wb.SheetNames[0]];
 
-        // 1. Extract Paper Name from B5
-        const cellB5 = sheet['B5'];
-        const paperName = cellB5 ? String(cellB5.v).trim() : "Unknown Paper";
+        // Extract Subject (B5) and Date/Time String (B6)
+        const paperName = sheet['B5'] ? String(sheet['B5'].v).trim() : "Unknown Paper";
+        const excelDateTime = sheet['B6'] ? String(sheet['B6'].v).trim() : "";
 
-        // 2. Convert sheet to array starting from row 1
         const rows = XLSX.utils.sheet_to_json(sheet, {header: 1});
         
-        // 3. Process data starting from Row 9 (Index 8)
-        // Adjust the column index if 'B' is not the first column (B is Index 1)
+        // Process data starting from Row 9 (Index 8) in Column B (Index 1)
         const colBIndex = 1; 
-
         for(let r = 8; r < rows.length; r++) { 
             const regNumber = rows[r][colBIndex];
             if(regNumber) {
-                list.push({ id: regNumber, paper: paperName }); 
+                // Store the excelDateTime along with the student info
+                list.push({ id: regNumber, paper: paperName, dateTime: excelDateTime }); 
             }
         }
     }
@@ -284,31 +282,27 @@ select, input {
     async function process(mode) {
     currentMode = mode;
     const list = await loadData();
-    if (!list) return;
+    if (!list || list.length === 0) return;
     
     const output = document.getElementById('dynamicOutput');
-    const body = document.body;
     output.innerHTML = '';
     
-    // Toggle Landscape class based on mode
     if (mode === 'master') {
-        body.classList.add('landscape-print');
+        document.body.classList.add('landscape-print');
     } else {
-        body.classList.remove('landscape-print');
+        document.body.classList.remove('landscape-print');
     }
 
     const pageSize = parseInt(document.getElementById('pageSize').value);
-    const dateInput = document.getElementById('examDate').value;
-    const formattedDate = dateInput ? new Date(dateInput).toLocaleDateString('en-GB') : "";
-    const session = document.getElementById('session').value;
-    const time = document.getElementById('examTime').value;
     
     if (mode === 'cards') {
         for (let i = 0, hCount = 1; i < list.length; i += pageSize, hCount++) {
-            renderHallCard(list.slice(i, i + pageSize), hCount, formattedDate, session, time);
+            const chunk = list.slice(i, i + pageSize);
+            // Use the dateTime from the Excel file
+            renderHallCard(chunk, hCount, chunk[0].dateTime, "", "");
         }
     } else if (mode === 'master') {
-        renderMasterTable(list, pageSize, formattedDate, session, time);
+        renderMasterTable(list, pageSize);
     } else if (mode === 'stickers') {
         renderStickers(list);
     }
@@ -391,13 +385,12 @@ select, input {
     output.innerHTML += card;
 }
 
-    function renderMasterTable(list, size, date, session, time) {
+    function renderMasterTable(list, size) {
     const output = document.getElementById('dynamicOutput');
     const examName = document.getElementById('examName').value;
     const examScheme = document.getElementById('examScheme').value;
     const examSession = document.getElementById('examSession').value;
     const examYear = document.getElementById('examYear').value;
-
     const fullTitle = `${examName} (${examScheme}) Examination, ${examSession} ${examYear}`;
 
     let html = `
@@ -409,7 +402,7 @@ select, input {
             <thead>
                 <tr>
                     <th class="col-hall">Hall</th>
-                    <th class="col-date">Date & Session</th>
+                    <th class="col-date">Date & Time</th>
                     <th class="col-paper">Subject / Paper</th>
                     <th class="col-regs-master">Register Numbers</th>
                     <th class="col-str">Str</th>
@@ -419,35 +412,35 @@ select, input {
             </thead>
             <tbody>`;
         
-        for (let i = 0, hCount = 1; i < list.length; i += size, hCount++) {
-            const chunk = list.slice(i, i + size);
-            let subGroups = [];
-            chunk.forEach(item => {
-                if (subGroups.length === 0 || subGroups[subGroups.length-1].paper !== item.paper) {
-                    subGroups.push({ paper: item.paper, ids: [item.id] });
-                } else {
-                    subGroups[subGroups.length-1].ids.push(item.id);
-                }
-            });
+    for (let i = 0, hCount = 1; i < list.length; i += size, hCount++) {
+        const chunk = list.slice(i, i + size);
+        let subGroups = [];
+        chunk.forEach(item => {
+            if (subGroups.length === 0 || subGroups[subGroups.length-1].paper !== item.paper) {
+                subGroups.push({ paper: item.paper, ids: [item.id], dt: item.dateTime });
+            } else {
+                subGroups[subGroups.length-1].ids.push(item.id);
+            }
+        });
 
-            subGroups.forEach((group, gIdx) => {
-                html += `<tr>`;
-                if (gIdx === 0) {
-                    html += `<td style="text-align:center; rowspan="${subGroups.length}">${hCount}</td>`;
-                    html += `<td style="text-align:center; rowspan="${subGroups.length}" style="font-size:11px">${date}<br><b>${session}&ensp;<span style="font-size:11px">${time}</span></td>`;
-                }
-                html += `<td style="text-align:left; font-size:11px">${group.paper}</td>`;
-                html += `<td class="col-regs-master">${formatRangesForMaster(group.ids)}</td>`;
-                if (gIdx === 0) {
-                    html += `<td style="text-align:center; rowspan="${subGroups.length}">${chunk.length}</td>`;
-                    html += `<td rowspan="${subGroups.length}"><div class="dotted-line"></div></td>`;
-                    html += `<td rowspan="${subGroups.length}"><div class="dotted-line"></div></td>`;
-                }
-                html += `</tr>`;
-            });
-        }
-        output.innerHTML = html + `</tbody></table>`;
+        subGroups.forEach((group, gIdx) => {
+            html += `<tr>`;
+            if (gIdx === 0) {
+                html += `<td class="col-hall" rowspan="${subGroups.length}" style="text-align:center">${hCount}</td>`;
+                html += `<td class="col-date" rowspan="${subGroups.length}" style="text-align:center; font-size:11px">${group.dt}</td>`;
+            }
+            html += `<td class="col-paper" style="text-align:left; font-size:11px">${group.paper}</td>`;
+            html += `<td class="col-regs-master">${formatRangesForMaster(group.ids)}</td>`;
+            if (gIdx === 0) {
+                html += `<td class="col-str" rowspan="${subGroups.length}" style="text-align:center">${chunk.length}</td>`;
+                html += `<td rowspan="${subGroups.length}"><div class="dotted-line"></div></td>`;
+                html += `<td rowspan="${subGroups.length}"><div class="dotted-line"></div></td>`;
+            }
+            html += `</tr>`;
+        });
     }
+    output.innerHTML = html + `</tbody></table>`;
+}
 
     function formatRangesForMaster(ids) {
         let ranges = [];
