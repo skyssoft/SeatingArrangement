@@ -16,17 +16,17 @@
         .no-print-area { max-width: 700px; margin: 0 auto 30px; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .controls { display: flex; flex-direction: column; gap: 12px; }
         .input-row { display: flex; gap: 20px; flex-wrap: wrap; text-align: center; }
-        .input-field { flex: 1; min-width: 140px; }
+        .input-field { flex: 3; min-width: 140px; width: 50px; }
         label { font-size: 12px; font-weight: bold; display: block; margin-bottom: 4px; }
         input, select, button { padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 14px; width: 100%; box-sizing: border-box; }
         .input-exam { flex: 1; min-width: 80px; width: 20%;}
 
-        .btn-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 5px; }
-        .upload-group { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 5px; }
+        .btn-group { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 5px; }
+        .upload-group { display: flex; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 5px;align-items: center; }
         .btn-card { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
         .btn-master { background: #334155; color: white; border: none; font-weight: bold; cursor: pointer; }
         .btn-sticker { background: var(--purple); color: white; border: none; font-weight: bold; cursor: pointer; }
-        .btn-clear { background: #ec3636; color: white; border: none; font-weight: bold; cursor: pointer;width: 30%; }
+        .btn-clear { background: #ec3636; color: white; border: none; font-weight: bold; cursor: pointer; width: 100%; height: 100%; }
 
         
         #pdfBtn { background: var(--success); color: white; border: none; font-weight: bold; cursor: pointer; display: none; margin-top: 15px; }
@@ -81,9 +81,9 @@
 
 /* Specific Column Widths */
 .col-hall { width: 4%; text-align: right; }        /* Reduced Hall column */
-.col-date { width: 8%; text-align: center;}       /* Reduced Date/Session column */
-.col-paper { width: 30%; }      /* EXPANDED Paper column */
-.col-regs-master { width: 30%; } /* Register Numbers */
+/* .col-date { width: 8%; text-align: center;}       Reduced Date/Session column */
+.col-paper { width: 25%; }      /* EXPANDED Paper column */
+.col-regs-master { width: 35%; } /* Register Numbers */
 .col-str { width: 5%; }         /* Reduced Strength column */
 .col-inv { width: 13%; }        /* Invigilator name */
 .col-sign { width: 10%; }       /* Signature */
@@ -181,7 +181,9 @@ select, input {
         <label>Scheme:</label>
         <select id="examScheme" class="input-exam"> 
            <option value="FYUG">FYUG</option> 
+           <option value="FYUG/CBCSS">FYUG/CBCSS</option>
            <option value="CBCSS">CBCSS</option> 
+           
            <option value="PG">PG</option> 
         </select>
 
@@ -202,29 +204,31 @@ select, input {
    
 
         <div class="input-row">
-            <div class="input-field"><label>Date</label><input type="date" id="examDate"></div>
-            <div class="input-field"><label>Session</label>
-                <select id="session">
-                    <option value="FN">Forenoon (FN)</option>
-                    <option value="AN">Afternoon (AN)</option>
-                </select>
-            </div>
-            <div class="input-field"><label>Time</label><input type="text" id="examTime" placeholder="e.g. 10:00 - 1:00"></div>
-            <div class="input-field"><label>Students/Hall</label><input type="number" id="pageSize" value="20"></div>
+            
         </div>
-        <br>
+        
         <div class="upload-group">
-        <input type="file" id="fileInput" accept=".xlsx, .xls" multiple>
-        <button class="btn-clear" onclick="clearAll()">Clear files</button>
+        <div css="input-field">
+            <label><span> Students in a Hall: </span> </label></div>
+           <div> <input type="number" id="pageSize" value="20">
+        </div>
+        <div>
+        <input type="file" id="fileInput" accept=".xlsx, .xls" multiple></div>
+        <div>
+        <button class="btn-clear" onclick="clearAll()">Clear files</button></div>
+        
+         
+        
         </div>
         <br>
         <div class="btn-group">
             <button class="btn-card" onclick="process('cards')">Seating Arrangement</button>
             <button class="btn-master" onclick="process('master')">Exam Table</button>
             <button class="btn-sticker" onclick="process('stickers')">Stickers</button>
+            <button style="background: #0891b2; color: white; border: none; font-weight: bold; cursor: pointer;" onclick="process('summary')">Hall Summary</button>
         </div>
         <br>
-        <button id="pdfBtn" onclick="downloadPDF()">Download PDF</button>
+        <button id="pdfBtn" onclick="downloadPDF()">Print</button>
     </div>
 </div>
 
@@ -296,18 +300,21 @@ select, input {
     const pageSize = parseInt(document.getElementById('pageSize').value);
     
     if (mode === 'cards') {
-        for (let i = 0, hCount = 1; i < list.length; i += pageSize, hCount++) {
-            const chunk = list.slice(i, i + pageSize);
-            // Use the dateTime from the Excel file
-            renderHallCard(chunk, hCount, chunk[0].dateTime, "", "");
-        }
-    } else if (mode === 'master') {
-        renderMasterTable(list, pageSize);
-    } else if (mode === 'stickers') {
-        renderStickers(list);
+    for (let i = 0, hCount = 1; i < list.length; i += pageSize, hCount++) {
+        const chunk = list.slice(i, i + pageSize);
+        renderHallCard(chunk, hCount, chunk[0].dateTime, "", "");
     }
+} else if (mode === 'master') {
+    renderMasterTable(list, pageSize);
+} else if (mode === 'stickers') {
+    renderStickers(list);
+} else if (mode === 'summary') { // ADD THIS NEW CONDITION
+    renderHallSummary(list, pageSize);
+}
     document.getElementById('pdfBtn').style.display = 'block';
 }
+
+
 
     function renderHallCard(chunk, num, date, session, time) {
     const output = document.getElementById('dynamicOutput');
@@ -316,39 +323,39 @@ select, input {
 
     // 1. Grouping logic: Organize students by Paper
     chunk.forEach(item => {
-        let lastG = groups[groups.length-1];
+        let lastG = groups[groups.length - 1];
         let obj = parseId(item.id);
         
         if (lastG && lastG.paper === item.paper && obj.prefix === lastG.lastObj.prefix && obj.val === lastG.lastObj.val + 1) {
-            lastG.ranges[lastG.ranges.length-1].end = obj;
+            lastG.ranges[lastG.ranges.length - 1].end = obj;
             lastG.lastObj = obj;
+            lastG.count++; // Increment count for this paper group
         } else {
             if (!lastG || lastG.paper !== item.paper) {
-                groups.push({ paper: item.paper, ranges: [{start: obj, end: obj}], lastObj: obj });
+                // Initialize new paper group with count 1
+                groups.push({ paper: item.paper, ranges: [{start: obj, end: obj}], lastObj: obj, count: 1 });
             } else {
                 lastG.ranges.push({start: obj, end: obj});
                 lastG.lastObj = obj;
+                lastG.count++; // Increment count even if it's a new range within same paper
             }
         }
     });
 
     // 2. Format text: Full ID only for the first student of the paper
     groups.forEach(g => {
-        let paperPrefix = ""; // Track prefix used in this specific paper row
+        let paperPrefix = ""; 
         
         let rText = g.ranges.map((r, index) => {
             let startStr = "";
             
-            // If it's the first student of the paper, OR the prefix changed, show full ID
             if (index === 0 || r.start.prefix !== paperPrefix) {
                 startStr = r.start.prefix + r.start.num;
-                paperPrefix = r.start.prefix; // Update current prefix
+                paperPrefix = r.start.prefix; 
             } else {
-                // Same prefix in same paper: Show only the number
                 startStr = r.start.num;
             }
             
-            // If it's a range, add the end numbers
             if (r.start.num !== r.end.num) {
                 let endStr = (r.end.num.length > 3 ? r.end.num.slice(-3) : r.end.num);
                 return `${startStr}-${endStr}`;
@@ -356,9 +363,10 @@ select, input {
             return startStr;
         }).join(', ');
         
+        // ADDED (${g.count}) to the paper label line
         bodyHtml += `
             <div style="margin-bottom: 8px;">
-                <div class="paper-label">${g.paper}</div>
+                <div class="paper-label">${g.paper} <style="font-size:20px; font-weight:bold">(Count:${g.count})</style></div>
                 <div class="range-numbers">${rText}</div>
             </div>`;
     });
@@ -375,7 +383,6 @@ select, input {
                         <span>${session}</span>
                         <span style="font-size:10px">${time}</span>
                     </div>
-                    
                 </div>
                 <b>Str: ${chunk.length}</b>
             </div>
@@ -391,18 +398,22 @@ select, input {
     const examScheme = document.getElementById('examScheme').value;
     const examSession = document.getElementById('examSession').value;
     const examYear = document.getElementById('examYear').value;
+    
+    // Get Date/Time from the first record in the list
+    const scheduledDateTime = list.length > 0 ? list[0].dateTime : "";
+    
     const fullTitle = `${examName} (${examScheme}) Examination, ${examSession} ${examYear}`;
 
     let html = `
         <div style="text-align:center; margin-bottom:15px;">
             <h3 style="margin:0; text-transform:uppercase;">${fullTitle}</h3>
             <h4 style="margin:5px 0;">Seating Arrangement and Duty of Invigilator</h4>
+            <h4 style="margin:5px 0; font-weight: bold;">Date & Time: ${scheduledDateTime}</h4>
         </div>
         <table class="master-table">
             <thead>
                 <tr>
                     <th class="col-hall">Hall</th>
-                    <th class="col-date">Date & Time</th>
                     <th class="col-paper">Subject / Paper</th>
                     <th class="col-regs-master">Register Numbers</th>
                     <th class="col-str">Str</th>
@@ -417,7 +428,7 @@ select, input {
         let subGroups = [];
         chunk.forEach(item => {
             if (subGroups.length === 0 || subGroups[subGroups.length-1].paper !== item.paper) {
-                subGroups.push({ paper: item.paper, ids: [item.id], dt: item.dateTime });
+                subGroups.push({ paper: item.paper, ids: [item.id] });
             } else {
                 subGroups[subGroups.length-1].ids.push(item.id);
             }
@@ -427,7 +438,6 @@ select, input {
             html += `<tr>`;
             if (gIdx === 0) {
                 html += `<td class="col-hall" rowspan="${subGroups.length}" style="text-align:center">${hCount}</td>`;
-                html += `<td class="col-date" rowspan="${subGroups.length}" style="text-align:center; font-size:11px">${group.dt}</td>`;
             }
             html += `<td class="col-paper" style="text-align:left; font-size:11px">${group.paper}</td>`;
             html += `<td class="col-regs-master">${formatRangesForMaster(group.ids)}</td>`;
@@ -473,24 +483,70 @@ select, input {
         });
         output.appendChild(grid);
     }
+    function renderHallSummary(list, size) {
+    const output = document.getElementById('dynamicOutput');
+    const examName = document.getElementById('examName').value;
+    const year = document.getElementById('examYear').value;
+
+    const scheduledDateTime = list.length > 0 ? list[0].dateTime : "";
+
+    let html = `
+        <div style="text-align:center; margin-bottom:20px;">
+            <h2 style="margin:0;">HALL-WISE SUMMARY</h2>
+            <h4 style="margin:5px 0;">${examName} Examination ${year}</h4>
+             <h4 style="margin:5px 0; font-weight: bold;">Date & Time: ${scheduledDateTime}</h4>
+
+        </div>
+        <table class="master-table" style="width: 80%; margin: 0 auto;">
+            <thead>
+                <tr>
+                    <th style="width: 5%;">Hall No.</th>
+                    <th style="width: 80%;">Register Numbers</th>
+                    <th style="width: auto;">Strength</th>
+                </tr>
+            </thead>
+            <tbody>`;
+
+    for (let i = 0, hCount = 1; i < list.length; i += size, hCount++) {
+        const chunk = list.slice(i, i + size);
+        
+        // Use your existing range formatting logic
+        const regNumbers = formatRangesForMaster(chunk.map(s => s.id));
+
+        html += `
+            <tr style="height: 10px;">
+                <td style="text-align:center; font-size: 11px; font-weight: bold;">${hCount}</td>
+                <td style="padding: 4px; font-size: 11px;">${regNumbers}</td>
+                <td style="text-align:center; font-size: 11px; font-weight: bold;">${chunk.length}</td>
+            </tr>`;
+    }
+
+    html += `</tbody></table>`;
+    
+    // Add a signature line at the bottom
+    html += `
+        <div style="margin-top: 50px; text-align: right; padding-right: 10%; font-weight: bold;">
+           
+        </div>`;
+
+    output.innerHTML = html;
+}
 
     function downloadPDF() {
-    // 1. Capture dynamic data from your specific IDs
-    const examDate = document.getElementById('examDate').value || "NoDate";
-    const session = document.getElementById('session').value; // FN or AN
-    const semester = document.getElementById('examName').value; // e.g. First Semester
+    // Corrected IDs to match your HTML elements
+    const semester = document.getElementById('examName').value; 
+    const session = document.getElementById('examSession').value;
+    const year = document.getElementById('examYear').value;
     
-    // 2. Clean the filename (replace spaces/special characters)
-    const fileName = `${examDate}_${session}_${semester}`.replace(/\s+/g, '_');
+    
+    // Create a clean filename: e.g., First_Semester_November_2026
+    const fileName = `${semester}_${session}_${year}`.replace(/\s+/g, '_');
 
-    // 3. Update document title for the print engine
     const originalTitle = document.title;
     document.title = fileName;
 
-    // 4. Execute Print (User selects "Save as PDF" in the dialog)
     window.print();
 
-    // 5. Cleanup
     setTimeout(() => { document.title = originalTitle; }, 100);
 }
 
