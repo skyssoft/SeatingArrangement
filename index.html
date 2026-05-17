@@ -431,7 +431,7 @@ function renderHallCard(chunk, num, date) {
             paperPrefix = r.start.prefix; 
             return (r.start.num !== r.end.num) ? `${startStr}-${r.end.num.slice(-3)}` : startStr;
         }).join(', ');
-        bodyHtml += `<div style="margin-bottom: 8px;"><div class="paper-label">${g.paper} (Count:${g.count})</div><div class="range-numbers">${rText}</div></div>`;
+        bodyHtml += `<div style="margin-bottom: 8px;"><div class="paper-label">${g.paper} <span style="font-size:13px; text-decoration: none; font-weight:bold">&nbsp;&nbsp;&nbsp;(Count:${g.count})</span></div><div class="range-numbers">${rText}</div></div>`;
     });
 
     const lastClassStrength = hallCounts[hallCounts.length - 1] || 0;
