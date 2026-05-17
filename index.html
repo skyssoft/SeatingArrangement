@@ -401,7 +401,6 @@ function adjustHall(hallIndex, change) {
 }
 
 function renderHallCard(chunk, num, date) {
-    
     const examName = document.getElementById('examName').value;
     const output = document.getElementById('dynamicOutput');
     let bodyHtml = "";
@@ -550,11 +549,33 @@ function formatRangesForMaster(ids) {
         let start = parseId(ids[i]), last = start;
         while (i + 1 < ids.length) {
             let next = parseId(ids[i+1]);
-            if (next.prefix === last.prefix && next.val === last.val + 1) { last = next; i++; } else break;
+            if (next.prefix === last.prefix && next.val === last.val + 1) { 
+                last = next; 
+                i++; 
+            } else {
+                break;
+            }
         }
-        ranges.push({start, last}); i++;
+        ranges.push({start, last}); 
+        i++;
     }
-    return ranges.map(r => (r.start.num === r.last.num) ? r.start.prefix + r.start.num : r.start.prefix + r.start.num + "-" + (r.last.num.slice(-3))).join(', ');
+    
+    let currentPrefix = "";
+    return ranges.map(r => {
+        let displayStr = "";
+        // If the prefix changes or is completely new, print it
+        if (r.start.prefix !== currentPrefix) {
+            displayStr += r.start.prefix;
+            currentPrefix = r.start.prefix;
+        }
+        
+        if (r.start.num === r.last.num) {
+            displayStr += r.start.num;
+        } else {
+            displayStr += r.start.num + "-" + (r.last.num.slice(-3));
+        }
+        return displayStr;
+    }).join(', ');
 }
 
 function renderStickers(list) {
@@ -587,4 +608,3 @@ function downloadPDF() {
 </script>
 </body>
 </html>
-
