@@ -18,13 +18,13 @@
         .no-print-area { max-width: 900px; margin: 0 auto 30px; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .controls { display: flex; flex-direction: column; gap: 12px; }
         label { font-size: 13px; font-weight: bold; display: block; margin-bottom: 4px; }
-        input, select, button { padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 14px; width: 100%; box-sizing: border-box; }
+        input, select, button { padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 14px; width: 100%; box-sizing: border-box; }
         .input-exam { flex: 1; min-width: 80px; width: 20%;}
 
-        .btn-group { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 5px; }
+        .btn-group { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 5px; }
         .upload-group { display: flex; gap: 15px; margin-top: 5px; align-items: flex-end; flex-wrap: wrap; }
-        .btn-card { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
-        .btn-master { background: #334155; color: white; border: none; font-weight: bold; cursor: pointer; }
+        .btn-card { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer;width: auto; }
+        .btn-master { background: #9a2d0b; color: white; border: none; font-weight: bold; cursor: pointer; width: auto; }
         .btn-sticker { background: var(--purple); color: white; border: none; font-weight: bold; cursor: pointer; }
         .btn-clear { background: #ec3636; color: white; border: none; font-weight: bold; cursor: pointer; width: 100%; }
 
@@ -249,11 +249,79 @@
                 margin: 0 !important;
             }
         }
+       
+
+.button-3 {
+  appearance: none;
+  background-color: #1b592c;
+  border: 1px solid rgba(27, 31, 35, .15);
+  border-radius: 6px;
+  box-shadow: rgba(27, 31, 35, .1) 0 1px 0;
+  box-sizing: border-box;
+  color: #ffffff;
+  cursor: pointer;
+  display: inline-block;
+  font-family: -apple-system,system-ui,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 12px;
+  padding: 5px 16px;
+  position: relative;
+  text-align: center;
+  text-decoration: none;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  vertical-align: middle;
+  white-space: nowrap;
+  width: auto;
+  
+}
+
+.button-3:focus:not(:focus-visible):not(.focus-visible) {
+  box-shadow: none;
+  outline: none;
+}
+
+.button-3:hover {
+  background-color: #2c974b;
+}
+
+.button-3:focus {
+  box-shadow: rgba(46, 164, 79, .4) 0 0 0 3px;
+  outline: none;
+}
+
+.button-3:disabled {
+  background-color: #94d3a2;
+  border-color: rgba(27, 31, 35, .1);
+  color: rgba(255, 255, 255, .8);
+  cursor: default;
+}
+
+.button-3:active {
+  background-color: #298e46;
+  box-shadow: rgba(20, 70, 32, .2) 0 1px 0 inset;
+}
+	
     </style>
 </head>
 <body>
 
-    <div class="no-print-area">
+
+
+    <div class="no-print-area" style="background-color: #d9dce8; padding-top: 5px;">
+       <div style="padding-top:0px; text-align: right ; "> 
+				<div style="color: rgb(0, 0, 0); font-weight: 500; padding-left: 50px; "  > Quick Links>>>
+				
+				<a href="https://skyssoft.github.io/dummyTCform/"; target="_blank"><input type="button" class="button-3" value="Easy T C  Print";> </a>
+				<a href="https://skyssoft.github.io/voucherPrint/samplevoucher", target="_blank"><input type="button" class="button-3" value="Voucher Print";></a>
+				<span style="color: rgb(112, 11, 41); text-align: right; font-size: 25 px;">Contact: 9526455151 </span>
+				</div>
+			</div>
+
+<br>
+
         <h1 style="margin: 0 0 5px 0; text-align: center; color: #2563eb; ">Govt Arts & Science College, Kozhikode</h1>
         <h2 style="margin: 0 0 20px 0; text-align: center;">Examination Seating Arrangement</h2>
         <div class="controls">
@@ -324,9 +392,10 @@
         <div class="btn-group">
             <button class="btn-card" onclick="process('cards')">Seating Arrangement</button>
             <button class="btn-master" onclick="process('master')">Exam Register</button>
+            <button style="background:#096b10; color:white; border:none; font-weight:bold; cursor:pointer;" onclick="process('attendance')">Attendance Sheet</button>
             <button class="btn-sticker" onclick="process('stickers')">Stickers</button>
             <button style="background: #0891b2; color: white; border: none; font-weight: bold; cursor: pointer;" onclick="process('summary')">Hall Summary</button>
-            <button style="background:#dc2626; color:white; border:none; font-weight:bold; cursor:pointer;" onclick="process('attendance')">Attendance Sheet</button>
+            
         </div>
         
         <div id="printControlGroup" class="print-control-group">
