@@ -1063,13 +1063,20 @@ function renderMasterTable() {
     const examSession = document.getElementById('examSession').value;
     const examYear = document.getElementById('examYear').value;
     const output = document.getElementById('dynamicOutput');
-    
+
     const header = `
         <div style="text-align:center; margin-bottom:15px;">
-            <h4 style="text-transform:uppercase; margin-bottom: 1px;">KMCT Arts and Science College, Kuttippuram</h4>
-            <h3 style="text-transform:uppercase; margin-top: 1px; margin-bottom:1px;">${examName} ${examScheme} Examination ${examSession} ${examYear}</h3>
-            <h4 style="margin-top: 1px; margin-bottom:1px;">Date & Time: ${processedHallsData[0]?.[0]?.dateTime || ''}</h4>
+            <h4 style="text-transform:uppercase; margin-bottom:1px;">
+                KMCT Arts and Science College, Kuttippuram
+            </h4>
+            <h3 style="text-transform:uppercase; margin-top:1px; margin-bottom:1px;">
+                ${examName} ${examScheme} Examination ${examSession} ${examYear}
+            </h3>
+            <h4 style="margin-top:1px; margin-bottom:1px;">
+                Date & Time: ${processedHallsData[0]?.[0]?.dateTime || ''}
+            </h4>
         </div>
+
         <table class="master-table">
             <thead>
                 <tr>
@@ -1083,43 +1090,96 @@ function renderMasterTable() {
                 </tr>
             </thead>
             <tbody>`;
-    
+
     let rows = "";
-    
+
     processedHallsData.forEach((chunk, hIdx) => {
-       
+
         if (chunk.length === 0) return;
-         const roomName = roomNamesMap[hIdx + 1] || "";
-        
+
+        const roomName = roomNamesMap[hIdx + 1] || "";
+
         let sortedChunk = [...chunk].sort((a, b) => {
             let idxA = globalPaperOrder.indexOf(a.paper);
             let idxB = globalPaperOrder.indexOf(b.paper);
-            if(idxA !== idxB) return idxA - idxB;
+
+            if (idxA !== idxB) return idxA - idxB;
+
             let pa = parseId(a.id), pb = parseId(b.id);
-            if (pa.prefix !== pb.prefix) return pa.prefix.localeCompare(pb.prefix);
+
+            if (pa.prefix !== pb.prefix)
+                return pa.prefix.localeCompare(pb.prefix);
+
             return (pa.val || 0) - (pb.val || 0);
         });
 
         let subGroups = [];
+
         sortedChunk.forEach(item => {
-            if (subGroups.length === 0 || subGroups[subGroups.length-1].paper !== item.paper) {
-                subGroups.push({ paper: item.paper, ids: [item.id] });
+
+            if (
+                subGroups.length === 0 ||
+                subGroups[subGroups.length - 1].paper !== item.paper
+            ) {
+                subGroups.push({
+                    paper: item.paper,
+                    ids: [item.id]
+                });
             } else {
-                subGroups[subGroups.length-1].ids.push(item.id);
+                subGroups[subGroups.length - 1].ids.push(item.id);
             }
         });
 
         subGroups.forEach((g, gIdx) => {
-            rows += `<tr>
-                ${gIdx === 0 ? `<td rowspan="${subGroups.length}" style="text-align:center; font-weight:bold; font-size:13px;">${hIdx+1}</td>` : ''}
-                ${gIdx === 0 ? `<td rowspan="${subGroups.length}" style="text-align:center; font-weight:bold; font-size:13px;">${roomName}</td>` : ''}
-                <td style="font-size:11px">${g.paper}</td>
-                <td>${formatRangesForMaster(g.ids)}</td>
-                ${gIdx === 0 ? `<td rowspan="${subGroups.length}" style="text-align:center; font-weight:bold; font-size:13px;">${chunk.length}</td><td rowspan="${subGroups.length}"><div class="dotted-line"></div></td><td rowspan="${subGroups.length}"><div class="dotted-line"></div></td>` : ''}
-            </tr>`;
+
+            const paperCount = g.ids.length;
+
+            rows += `
+                <tr>
+                    ${gIdx === 0 ? `
+                        <td rowspan="${subGroups.length}"
+                            style="text-align:center;font-weight:bold;font-size:13px;">
+                            ${hIdx + 1}
+                        </td>
+                    ` : ''}
+
+                    ${gIdx === 0 ? `
+                        <td rowspan="${subGroups.length}"
+                            style="text-align:center;font-weight:bold;font-size:13px;">
+                            ${roomName}
+                        </td>
+                    ` : ''}
+
+                    <td style="font-size:11px;">
+                        ${g.paper}
+                        
+                    </td>
+
+                    <td>
+                        ${formatRangesForMaster(g.ids)}
+                        <span style="font-weight:bold; white-space:nowrap;">
+                            (Count: ${paperCount})
+                        </span>
+                    </td>
+
+                    ${gIdx === 0 ? `
+                        <td rowspan="${subGroups.length}"
+                            style="text-align:center;font-weight:bold;font-size:13px;">
+                            ${chunk.length}
+                        </td>
+
+                        <td rowspan="${subGroups.length}">
+                            <div class="dotted-line"></div>
+                        </td>
+
+                        <td rowspan="${subGroups.length}">
+                            <div class="dotted-line"></div>
+                        </td>
+                    ` : ''}
+                </tr>`;
         });
     });
-    
+
     output.innerHTML = header + rows + `</tbody></table>`;
 }
 
